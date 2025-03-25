@@ -1,115 +1,122 @@
 import ply.lex as lex
 
-#  Definir tokens
+# Definir los tokens del lenguaje
 tokens = (
-    'ID', 'NUMBER', 'DECIMAL', 'STRING',
-    'ASSIGN', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
-    'EQ', 'NEQ', 'GT', 'LT', 'AND', 'OR', 'NOT',
-    'COMMA', 'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET',
-)
+    'NUMBER', 'CADENA', 'SUMA', 'RESTA', 'MULTIPLICACION', 'DIVIDIR', 'LPAREN', 'RPAREN',
+    'ASIGNACION', 'IGUALDAD', 'DESIGUALDAD','MAYOR','MENOR','NUMBER_DECIMAL', 'IDENTIFICADOR',
+    'LLAVE_IZQ','LLAVE_DER','CORCHETE_IZQ', 'CORCHETE_DER','COMENTARIO', 'COMENTARIOS', 'COMA', 'PUNTO_Y_COMA'
+    )
 
-# Palabras clave
-reserved = {
+palabras_reservadas = {
+    'retornar': 'RETORNAR',
+    'para': 'PARA',
+    'mientras': 'MIENTRAS',
     'si': 'SI',
     'sino': 'SINO',
-    'mientras': 'MIENTRAS',
-    'para': 'PARA',
-    'definir': 'DEFINIR',
-    'retornar': 'RETORNAR',
-    'verdadero': 'VERDADERO',
-    'falso': 'FALSO',
-    'imprimir': 'IMPRIMIR'
+    'imprimir': 'IMPRIMIR',
+    'no': 'NO',
+    'o': 'O',
+    'yy': 'Y',
+    'Verdadero': 'VERDADERO',
+    'Falso': 'FALSO',
+    'definir': 'FUNCION'
 }
 
-tokens = tokens + tuple(reserved.values())
+tokens = tokens + tuple(palabras_reservadas.values())
 
-# Expresiones regulares para tokens simples
-t_ASSIGN = r'='
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_TIMES = r'\*'
-t_DIVIDE = r'/'
-t_EQ = r'=='
-t_NEQ = r'!='
-t_GT = r'>'
-t_LT = r'<'
-t_AND = r'y'
-t_OR = r'o'
-t_NOT = r'no'
-t_COMMA = r','
+# Expresiones regulares para cada token
+t_PUNTO_Y_COMA = ';'
+t_COMA = r','
+t_CORCHETE_IZQ = r'\['
+t_CORCHETE_DER = r'\]'
+t_LLAVE_IZQ = r'\{'
+t_LLAVE_DER = r'\}'
+t_RETORNAR = r'retornar'
+t_PARA = r'para'
+t_MIENTRAS = r'mientras'
+t_SI = r'si'
+t_SINO = r'sino'
+t_VERDADERO = r'Verdadero'
+t_FALSO = r'Falso'
+t_NO = r'no'
+t_O = r'o'
+t_Y = r'yy'
+t_MAYOR = r'>'
+t_MENOR = r'<'
+t_DESIGUALDAD = r'!='
+t_IGUALDAD = r'=='
+t_ASIGNACION = r'='
+t_SUMA = r'\+'
+t_RESTA = r'-'
+t_MULTIPLICACION = r'\*'
+t_DIVIDIR = r'/'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
-t_LBRACE = r'\{'
-t_RBRACE = r'\}'
-t_LBRACKET = r'\['
-t_RBRACKET = r'\]'
+t_CADENA = r'\".*?\"'
+t_IMPRIMIR = r'imprimir'
+t_FUNCION = r'definir'
 
-#  Tokens más complejos con funciones
-
-# Identificadores (variables y funciones)
-def t_ID(t):
+def t_IDENTIFICADOR(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved.get(t.value, 'ID')  # Si es palabra clave, cambia el tipo
+    t.type = palabras_reservadas.get(t.value, 'IDENTIFICADOR')
     return t
 
-# Números enteros
-def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)
-    return t
-
-# Números decimales
-def t_DECIMAL(t):
-    r'\d+\.\d+'
+def t_NUMBER_DECIMAL(t):
+    r'\d+\.(\d+)?'
     t.value = float(t.value)
     return t
 
-# Cadenas de texto
-def t_STRING(t):
-    r'"([^"\\]*(\\.[^"\\]*)*)"'
-    t.value = t.value[1:-1]  # Quita comillas
+# Definir cómo reconocer un número
+def t_NUMBER(t):
+    r'\d+' # d+ captura los numeros como cadena de texto
+    t.value = int(t.value) # nosotros queremos trabajar con numeros enteros entonces una ves reconocido lo convertimos a entero.
     return t
 
-# Comentarios de una línea
-def t_COMMENT(t):
-    r'//.*'
-    pass  # Se ignoran
+def t_COMENTARIO(t):
+    r'//.*'  
+    print("Comentario de una línea encontrado")
+    pass
+def t_COMENTARIOMULTILINEA(t):
+    r'/\*[\s\S]*?\*/'  
+    print("Comentario de una multilínea encontrado")
+    pass  
 
-# Comentarios multilínea
-def t_COMMENT_MULTI(t):
-    r'/\*[\s\S]*?\*/'
-    pass  # Se ignoran
-
-# Ignorar espacios y tabulaciones
-t_ignore = ' \t'
-
-# Contar saltos de línea
+# Manejo de saltos de línea
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+# Ignorar espacios y tabs
+t_ignore = ' \t'
+
 # Manejo de errores
 def t_error(t):
-    print(f"Carácter ilegal '{t.value[0]}' en línea {t.lineno}")
+    print(f"Carácter ilegal: {t.value[0]}")
     t.lexer.skip(1)
 
-#  Construcción del lexer
+# Crear el analizador léxico
 lexer = lex.lex()
 
-#Leer archivo y analizarlo
-with open("codigo_fuente.txt", "r", encoding="utf-8") as f:
-    data = f.read()
+# Leer el archivo de código fuente y procesarlo
+with open("codigo_fuente.txt", "r") as archivo:
+    codigo = archivo.read()
 
-lexer.input(data)
+# Alimentar el código al lexer
+lexer.input(codigo)
 
-# Guardar tokens en una lista de diccionarios
+# Almacenar los tokens en una lista de objetos
 tokens_list = []
 while True:
     tok = lexer.token()
     if not tok:
         break
-    tokens_list.append({"type": tok.type, "value": tok.value, "line": tok.lineno})
+    tokens_list.append({
+        'type': tok.type,
+        'lexeme': tok.value,
+        'line': tok.lineno,
+        'column': tok.lexpos
+    })
 
-# Imprimir tokens generados
+# Imprimir los tokens
 for token in tokens_list:
     print(token)
