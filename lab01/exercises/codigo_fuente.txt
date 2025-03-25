@@ -1,18 +1,30 @@
-imprimir("Hola Mundo")
-i = 0
-mientras i < 3 {
-    j = 0
-    mientras j < 3 {
-        imprimir("Posición: (" + i + ", " + j + ")")
-        j = j + 1
-    }
-    i = i + 1
-}
-definir factorial(n) {
-    si n == 0 {
-        retornar 1
+// Este es un comentario de una línea
+definir suma(a, b) {
+    si (a > b) {
+        retornar a
     } sino {
-        retornar n * factorial(n - 1)
+        retornar b
     }
 }
-imprimir(factorial(5))
+
+/* Este es un comentario
+   multilínea que abarca varias
+   líneas de código */
+
+para (i = 0; i < 10; i = i + 1) {
+    imprimir "Iteración número: "
+    imprimir i
+}
+
+mientras (i != 0) {
+    imprimir "Valor de i: "
+    imprimir i
+    i = i - 1
+}
+
+imprimir "Resultado: "  // Comentario después de una línea de código
+retornar Verdadero
+
+falso = 10
+numero = 4.5
+cadena = "Hola "mundo""
